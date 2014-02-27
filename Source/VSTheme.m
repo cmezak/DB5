@@ -11,7 +11,9 @@
 
 static BOOL stringIsEmpty(NSString *s);
 static UIColor *colorWithHexString(NSString *hexString);
-
+static VSTheme *DefaultTheme;
+static VSTheme *ActiveTheme;
+static NSArray *AllThemes;
 
 @interface VSTheme ()
 
@@ -24,8 +26,68 @@ static UIColor *colorWithHexString(NSString *hexString);
 
 @implementation VSTheme
 
-
 #pragma mark Init
+
++ (void)initialize
+{
+    if (self == [VSTheme class])
+    {
+        NSString *themesFilePath = [[NSBundle mainBundle] pathForResource:@"DB5" ofType:@"plist"];
+        NSDictionary *themesDictionary = [NSDictionary dictionaryWithContentsOfFile:themesFilePath];
+        
+        NSMutableArray *themes = [NSMutableArray array];
+        for (NSString *oneKey in themesDictionary) {
+            
+            if ([oneKey isEqualToString:@"ActiveThemeName"])
+                continue;
+            
+            VSTheme *theme = [[VSTheme alloc] initWithDictionary:themesDictionary[oneKey]];
+            if ([[oneKey lowercaseString] isEqualToString:@"default"])
+                DefaultTheme = theme;
+            
+            if ([oneKey isEqualToString:themesDictionary[@"ActiveThemeName"]])
+                ActiveTheme = theme;
+            
+            theme.name = oneKey;
+            [themes addObject:theme];
+        }
+        
+        for (VSTheme *oneTheme in themes) { /*All themes inherit from the default theme.*/
+            if (oneTheme != DefaultTheme)
+                oneTheme.parentTheme = DefaultTheme;
+        }
+        
+        AllThemes = [themes copy];
+    }
+
+}
+
++ (VSTheme *)themeNamed:(NSString *)themeName
+{
+    for (VSTheme *oneTheme in AllThemes) {
+		if ([themeName isEqualToString:oneTheme.name])
+			return oneTheme;
+	}
+    
+	return nil;
+}
+
++ (VSTheme *)defaultTheme
+{
+    return DefaultTheme;
+}
+
++ (VSTheme *)activeTheme
+{
+    if (ActiveTheme == nil) return DefaultTheme;
+    
+    return ActiveTheme;
+}
+
++ (NSArray *)allThemes
+{
+    return AllThemes;
+}
 
 - (id)initWithDictionary:(NSDictionary *)themeDictionary {
 	

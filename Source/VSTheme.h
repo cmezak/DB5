@@ -20,6 +20,11 @@ typedef NS_ENUM(NSUInteger, VSTextCaseTransform) {
 
 @interface VSTheme : NSObject
 
++ (VSTheme *)themeNamed:(NSString *)themeName;
++ (VSTheme *)defaultTheme;
++ (VSTheme *)activeTheme;
++ (NSArray *)allThemes;
+
 - (id)initWithDictionary:(NSDictionary *)themeDictionary;
 
 @property (nonatomic, strong) NSString *name;
